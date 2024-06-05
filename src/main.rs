@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+mod map;
 
 fn main() {
     App::new()
