@@ -72,3 +72,9 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         },
     });
 }
+
+// Loads Assets from the assets folder
+fn load_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
+    println!("ASSETS LOADING...");
+    commands.insert_resource(asset_server.load_folder("/"));
+}
