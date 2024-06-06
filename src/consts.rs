@@ -1,5 +1,5 @@
-pub const SPRITE_ID_FLOOR: usize = 0;
-pub const SPRITE_ID_WALL: usize = 1;
+pub const SPRITE_ID_FLOOR: usize = 1;
+pub const SPRITE_ID_WALL: usize = 0;
 pub const SPRITE_ID_PLAYER: usize = 2;
 
 pub const Z_INDEX_PLAYER: f32 = 1.0;
