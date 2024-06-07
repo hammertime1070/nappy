@@ -24,6 +24,12 @@ impl TileType {
             TileType::Wall => SPRITE_ID_WALL,
         }
     }
+    pub fn to_passable(&self) -> Passable {
+        match self {
+            TileType::Floor => Passable(true),
+            TileType::Wall => Passable(false),
+        }
+    }
 }
 
 #[derive(Bundle)]
