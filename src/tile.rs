@@ -39,4 +39,5 @@ pub struct TileBundle {
     pub position: MapPosition,
     pub passable: Passable,
     pub sprite: SpriteSheetBundle,
+    pub actor: Option<Unit>,
 }
