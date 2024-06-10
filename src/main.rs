@@ -7,14 +7,11 @@ mod tile;
 mod input;
 mod unit;
 
-use bevy::sprite;
 use consts::*;
 use map::*;
 use player::*;
 use input::*;
-use unit::*;
 
-use tile::Tile;
 use tile::TileBundle;
 
 
@@ -71,7 +68,7 @@ fn spawn_tiles(
             x: tile_i % map.width,
             y: tile_i / map.width,
         };
-        let (sprite_x, sprite_y) = calculate_sprite_position(&map_position);
+        let (sprite_x, sprite_y) = map_position.as_sprite_coordinates();
         commands.spawn(TileBundle {
             tile: tile.clone(),
             position: map_position,
