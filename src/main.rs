@@ -33,7 +33,8 @@ fn setup(
     let texture_handle = asset_server.load("sprite_sheet.png");
     let texture_atlas = TextureAtlasLayout::from_grid( Vec2::new(32.0, 32.0), 1, 4, None, None);
     let atlas_handle = texture_atlases.add(texture_atlas);
-    let map = Map::new(8, 8);
+    // let map = Map::new(8, 8);
+    let map: Map = Map::new_ff(8, 8);
     spawn_tiles(&mut commands, &map, &atlas_handle, &texture_handle);
     spawn_player(&mut commands, &atlas_handle, &texture_handle);
     commands.spawn(map);

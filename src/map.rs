@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use rand::Rng;
 
 use crate::tile::*;
 use crate::consts::*;
@@ -96,6 +97,52 @@ impl Map {
         *previous_position = *new_position;
         println!("moving unit");
         Ok(())
+    }
+
+    // Flood Fill Algorithm changes
+    pub fn new_ff(width: usize, height: usize) -> Self {
+        let mut tiles = vec![Tile { tile_type: TileType::Floor, unit: None }; width * height];
+        for x in 0..width {
+            for y in 0..height {
+                let index = x + y * width;
+                if x == 0 || y == 0 || x == width - 1 || y == height - 1 || rand::random::<f32>() < 0.3 {
+                    tiles[index] = Tile { tile_type: TileType::Wall, unit: None };
+                } else {
+                    tiles[index] = Tile { tile_type: TileType::Floor, unit: None };
+                }
+            }
+        }
+        Self { width, height, tiles: tiles.clone(), entities: vec![None; tiles.len()]}
+    }
+
+    pub fn in_bounds(&self, x: isize, y: isize) -> bool {
+        x >= 0 && y >= 0 && x < self.width as isize && y < self.height as isize
+    }
+
+    pub fn get_tile(&self, x: isize, y: isize) -> Option<&Tile> {
+        if self.in_bounds(x, y) {
+            let index = x + y * self.width as isize;
+            Some(&self.tiles[index as usize])
+        } else {
+            None
+        }
+    }
+
+    pub fn random_passable_tile(&self) -> Option<(usize, usize)> {
+        let mut rng = rand::thread_rng();
+        let mut tries = 1000;
+        while tries > 0 {
+            let x = rng.gen_range(0..self.width);
+            let y = rng.gen_range(0..self.height);
+            if let Some(tile) = self.get_tile(x as isize, y as isize) {
+                // TODO make this look less stupid
+                if tile.tile_type.to_passable().0 {
+                    return Some((x, y));
+                }
+            }
+            tries -= 1;
+        }
+        None
     }
 
 }
