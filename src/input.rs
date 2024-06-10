@@ -31,21 +31,25 @@ pub fn check_player_move(
 
     if input.just_pressed(KEY_PLAYER_RIGHT)
         {
+        println!("Right key pressed");
         move_right(&mut map, &mut pos_player).unwrap();
         }
 
     if input.just_pressed(KEY_PLAYER_LEFT)
         {
+        println!("Left key pressed");
         move_left(&mut map, &mut pos_player).unwrap();
         }
 
     if input.just_pressed(KEY_PLAYER_UP)
         {
+        println!("Up key pressed");
         move_up(&mut map, &mut pos_player).unwrap();
         }
 
     if input.just_pressed(KEY_PLAYER_DOWN)
         {
+        println!("Down key pressed");
         move_down(&mut map, &mut pos_player).unwrap();
         }
 }

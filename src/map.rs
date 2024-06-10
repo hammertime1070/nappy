@@ -94,6 +94,7 @@ impl Map {
         let index_to = self.as_tile_index(new_position)?;
         self.tiles[index_to].unit = self.tiles[index_from].unit.take();
         *previous_position = *new_position;
+        println!("moving unit");
         Ok(())
     }
 

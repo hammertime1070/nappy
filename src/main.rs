@@ -7,6 +7,7 @@ mod tile;
 mod input;
 mod unit;
 
+use bevy::sprite;
 use consts::*;
 use map::*;
 use player::*;
@@ -22,6 +23,7 @@ fn main() {
         .add_plugins(DefaultPlugins.set(WindowPlugin { primary_window: Some(Window { resolution: (WINDOW_WIDTH, WINDOW_HEIGHT).into(), ..Default::default()}), ..Default::default() }).set(ImagePlugin::default_nearest()))
         .add_plugins(InputPlugin)
         .add_systems(Startup, setup)
+        .add_systems(Update, update_sprite_transforms)
         .run()
 }
 
@@ -98,4 +100,15 @@ fn calculate_sprite_position(map_position: &MapPosition) -> (f32, f32) {
             - map_position.y as f32 * SPRITE_TILE_HEIGHT
             - SPRITE_TILE_HEIGHT / 2.0,
     )
+}
+
+fn update_sprite_transforms(
+    mut query: Query<(&MapPosition, &mut Transform)>
+) {
+    for (map_position, mut transform) in query.iter_mut() {
+        let (sprite_x, sprite_y) = calculate_sprite_position(map_position);
+        transform.translation.x = sprite_x;
+        transform.translation.y = sprite_y;
+        // print!("Updated transform to: ({}, {})", sprite_x, sprite_y);
+    }
 }
