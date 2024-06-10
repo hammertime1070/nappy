@@ -1,4 +1,3 @@
-use bevy::asset;
 use bevy::prelude::*;
 
 mod consts;
@@ -6,16 +5,17 @@ mod map;
 mod player;
 mod tile;
 mod input;
+mod unit;
 
 use consts::*;
 use map::*;
 use player::*;
 use input::*;
+use unit::*;
 
 use tile::Tile;
 use tile::TileBundle;
-use tile::TileType;
-use tile::Passable;
+
 
 fn main() {
     App::new()
@@ -37,6 +37,7 @@ fn setup(
     let map = Map::new(16, 16);
     spawn_tiles(&mut commands, &map, &atlas_handle, &texture_handle);
     spawn_player(&mut commands, &atlas_handle, &texture_handle);
+    commands.spawn((map));
 }
 
 fn spawn_player(commands: &mut Commands, atlas_handle: &Handle<TextureAtlasLayout>, texture_handle: &Handle<Image>) {
@@ -63,21 +64,20 @@ fn spawn_tiles(
     atlas_handle: &Handle<TextureAtlasLayout>,
     texture_handle: &Handle<Image>,
 ) {
-    for (tile_i, tile_type) in map.tiles.iter().enumerate() {
+    for (tile_i, tile) in map.tiles.iter().enumerate() {
         let map_position = MapPosition {
             x: tile_i % map.width,
             y: tile_i / map.width,
         };
         let (sprite_x, sprite_y) = calculate_sprite_position(&map_position);
         commands.spawn(TileBundle {
-            tile: Tile,
-            tiletype: tile_type.clone(),
+            tile: tile.clone(),
             position: map_position,
-            passable: tile_type.to_passable(),
+            passable: tile.tile_type.to_passable(),
             sprite: SpriteSheetBundle {
                 atlas: TextureAtlas {
                     layout: atlas_handle.clone(),
-                    index: tile_type.to_sprite_id(),
+                    index: tile.tile_type.to_sprite_id(),
                 },
                 texture: texture_handle.clone(),
                 transform: Transform::from_xyz(sprite_x, sprite_y, Z_INDEX_TERRAIN),

@@ -16,36 +16,35 @@ impl Plugin for InputPlugin {
 }
 
 pub fn check_player_move(
-    mut q_actors: Query<(&mut MapPosition), With<Player>>,
+    mut q_actors: Query<&mut MapPosition, With<Player>>,
     mut q_map: Query<&mut Map>,
     input: Res<ButtonInput<KeyCode>>,
 ) {
     let mut map = q_map.single_mut();
 
-    let (mut pos_player, _) = q_actors
+    let mut pos_player = q_actors
         .iter_mut()
-        .filter(|(_, a)| a.is_player())
         .last()
         .expect("no player pos found");
 
     let pos_player_old = pos_player.clone();
 
-    if input.any_just_pressed(KEY_PLAYER_RIGHT)
+    if input.just_pressed(KEY_PLAYER_RIGHT)
         {
         move_right(&mut map, &mut pos_player).unwrap();
         }
 
-    if input.any_just_pressed(KEY_PLAYER_LEFT)
+    if input.just_pressed(KEY_PLAYER_LEFT)
         {
         move_left(&mut map, &mut pos_player).unwrap();
         }
 
-    if input.any_just_pressed(KEY_PLAYER_UP)
+    if input.just_pressed(KEY_PLAYER_UP)
         {
         move_up(&mut map, &mut pos_player).unwrap();
         }
 
-    if input.any_just_pressed(KEY_PLAYER_DOWN)
+    if input.just_pressed(KEY_PLAYER_DOWN)
         {
         move_down(&mut map, &mut pos_player).unwrap();
         }

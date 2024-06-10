@@ -1,10 +1,14 @@
 use crate::consts::*;
 use crate::map::MapPosition;
+use crate::unit::*;
 
 use bevy::prelude::*;
 
-#[derive(Component)]
-pub struct Tile;
+#[derive(Component, Clone)]
+pub struct Tile {
+    pub tile_type: TileType,
+    pub unit: Option<Unit>,
+}
 
 #[derive(Component, Clone)]
 pub enum TileType {
@@ -35,9 +39,7 @@ impl TileType {
 #[derive(Bundle)]
 pub struct TileBundle {
     pub tile: Tile,
-    pub tiletype: TileType,
     pub position: MapPosition,
     pub passable: Passable,
     pub sprite: SpriteSheetBundle,
-    pub actor: Option<Unit>,
 }

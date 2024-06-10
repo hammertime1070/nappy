@@ -1,9 +1,11 @@
 use bevy::prelude::*;
 
-use crate::tile::TileType;
+use crate::tile::*;
+use crate::consts::*;
 
 
-#[derive(Component)]
+
+#[derive(Component, Clone, Copy)]
 pub struct MapPosition {
     pub x: usize,
     pub y: usize,
@@ -47,7 +49,7 @@ impl MapPosition {
 pub struct Map {
     pub width: usize,
     pub height: usize,
-    pub tiles: Vec<TileType>,
+    pub tiles: Vec<Tile>,
     pub entities: Vec<Option<Entity>>,
 }
 
@@ -58,9 +60,9 @@ impl Map {
             let x = i / width;
             let y = i % height;
             if y == 0 || y == height -1 || x == width - 1 {
-                tiles.push(TileType::Wall)
+                tiles.push(Tile {tile_type: TileType::Wall, unit: None })
             } else {
-                tiles.push(TileType::Floor)
+                tiles.push(Tile {tile_type: TileType::Floor, unit: None })
             }
         }
         return Map {
@@ -92,6 +94,7 @@ impl Map {
         let index_to = self.as_tile_index(new_position)?;
         self.tiles[index_to].unit = self.tiles[index_from].unit.take();
         *previous_position = *new_position;
+        Ok(())
     }
 
 }
