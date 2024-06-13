@@ -36,12 +36,12 @@ fn setup(
     // let map = Map::new(8, 8);
     let map: Map = Map::new_ff(8, 8);
     spawn_tiles(&mut commands, &map, &atlas_handle, &texture_handle);
-    spawn_player(&mut commands, &atlas_handle, &texture_handle);
+    spawn_player(&mut commands, &map,  &atlas_handle, &texture_handle);
     commands.spawn(map);
 }
 
-fn spawn_player(commands: &mut Commands, atlas_handle: &Handle<TextureAtlasLayout>, texture_handle: &Handle<Image>) {
-    let map_position = MapPosition::new(0, 0);
+fn spawn_player(commands: &mut Commands, map: &Map, atlas_handle: &Handle<TextureAtlasLayout>, texture_handle: &Handle<Image>) {
+    let map_position = map.select_player_spawn_location();
     let (sprite_x, sprite_y) = calculate_sprite_position(&map_position);
     commands.spawn(PlayerBundle {
         player: Player,

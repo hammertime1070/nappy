@@ -145,6 +145,15 @@ impl Map {
         None
     }
 
+    pub fn select_player_spawn_location(&self) -> MapPosition {
+        let x = self.width /2;
+        let y = self.height - 1;
+        if let Some(tile) = self.get_tile(x as isize, y as isize) {
+            return MapPosition::new(x, y);
+        }
+        MapPosition::new(0, 0)
+    }
+
 }
 
 pub fn move_left(
