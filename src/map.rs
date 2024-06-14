@@ -55,24 +55,24 @@ pub struct Map {
 }
 
 impl Map {
-    pub fn new(width: usize, height: usize) -> Self {
-        let mut tiles = Vec::new();
-        for i in 0..(width * height) {
-            let x = i / width;
-            let y = i % height;
-            if y == 0 || y == height -1 || x == width - 1 {
-                tiles.push(Tile {tile_type: TileType::Wall, unit: None })
-            } else {
-                tiles.push(Tile {tile_type: TileType::Floor, unit: None })
-            }
-        }
-        return Map {
-            width,
-            height,
-            tiles: tiles.clone(),
-            entities: vec![None; tiles.len()],
-        };
-    }
+    // pub fn new(width: usize, height: usize) -> Self {
+    //     let mut tiles = Vec::new();
+    //     for i in 0..(width * height) {
+    //         let x = i / width;
+    //         let y = i % height;
+    //         if y == 0 || y == height -1 || x == width - 1 {
+    //             tiles.push(Tile {tile_type: TileType::Wall, unit: None })
+    //         } else {
+    //             tiles.push(Tile {tile_type: TileType::Floor, unit: None })
+    //         }
+    //     }
+    //     return Map {
+    //         width,
+    //         height,
+    //         tiles: tiles.clone(),
+    //         entities: vec![None; tiles.len()],
+    //     };
+    // }
 
     pub fn add_entity(&mut self, entity: Entity, pos_x: usize, pos_y: usize) {
         self.entities[pos_x + pos_y * self.width] = Some(entity)
@@ -112,7 +112,13 @@ impl Map {
                 }
             }
         }
-        Self { width, height, tiles: tiles.clone(), entities: vec![None; tiles.len()]}
+        // Create the map
+        let mut map = Self { width, height, tiles: tiles.clone(), entities: vec![None; tiles.len()]};
+        // Ensure player spawn is changed to a floor tile
+        let spawn_position = map.select_player_spawn_location();
+        let spawn_index = spawn_position.x + spawn_position.y * width;
+        map.tiles[spawn_index] = Tile { tile_type: TileType::Floor, unit: None };
+        return map
     }
 
     pub fn in_bounds(&self, x: isize, y: isize) -> bool {
