@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use rand::Rng;
+use rand::prelude::SliceRandom;
 
 use crate::tile::*;
 use crate::consts::*;
@@ -118,9 +119,14 @@ impl Map {
         let spawn_position = map.select_player_spawn_location();
         let spawn_index = spawn_position.x + spawn_position.y * width;
         map.tiles[spawn_index] = Tile { tile_type: TileType::Floor, unit: None };
-        
+
+        // Ensure player exit is changed to a floor tile
+        let exit_position = map.select_player_exit_location();
+        let exit_index = exit_position.x + exit_position.y * width;
+        map.tiles[exit_index] = Tile { tile_type: TileType::Floor, unit: None };
+
         // Check map connectivity
-        map.ensure_map_connectivity(spawn_position);
+        map.ensure_map_connectivity(spawn_position, exit_position);
         return map
     }
 
@@ -163,12 +169,21 @@ impl Map {
         MapPosition::new(0, 0)
     }
 
-    pub fn ensure_map_connectivity(&mut self, starting_position: MapPosition) {
-        let mut visited = vec![false; self.width * self.height];
-        let start_index = starting_position.x + starting_position.y * self.width;
-        let mut queue = vec![(starting_position.x, starting_position.y)];
-        visited[start_index] = true;
+    pub fn select_player_exit_location(&self) -> MapPosition {
+        let x = self.width /2;
+        let y = 0;
+        if let Some(tile) = self.get_tile(x as isize, y as isize) {
+            return MapPosition::new(x, y);
+        }
+        MapPosition::new(1, 1)
+    }
 
+    pub fn ensure_map_connectivity(&mut self, start_pos: MapPosition, exit_pos: MapPosition) {
+        let mut visited = vec![false; self.width * self.height];
+        let start_index = start_pos.x + start_pos.y * self.width;
+        let mut queue = vec![(start_pos.x, start_pos.y)];
+        visited[start_index] = true;
+    
         // Perform BFS to find all connected floor tiles
         while let Some((x, y)) = queue.pop() {
             for (nx, ny) in self.get_passable_neighbors(x as isize, y as isize) {
@@ -179,16 +194,41 @@ impl Map {
                 }
             }
         }
-        // Check for disconnected floor tiles and convert them to walls
-        for y in 0..self.height{
-            for x in 0..self.width {
-                let index = x + y * self.width;
-                if self.tiles[index].tile_type == TileType::Floor && !visited[index] {
-                    self.tiles[index].tile_type = TileType::Wall;
+    
+        // Get the number of passable tiles found during BFS
+        let mut connected_passable_count = visited.iter().filter(|&v| *v).count();
+    
+        // Check if the number of connected passable tiles matches the total passable tiles
+        let total_passable_count = self.tiles.iter().filter(|t| t.tile_type.to_passable().0).count();
+        println!("Connected Passable Count: {}, Total Passable Count: {}", connected_passable_count, total_passable_count);
+        if connected_passable_count == total_passable_count {
+            return; // No need to shuffle
+        }
+    
+        // Exclude player spawn and exit from passable indices
+        let mut passable_indices: Vec<usize> = (0..self.tiles.len())
+            .filter(|&i| self.tiles[i].tile_type.to_passable().0 && i != start_index && i != exit_pos.x + exit_pos.y * self.width)
+            .collect();
+    
+        // Perform Fisher-Yates shuffle until passable tile count matches
+        let mut rng = rand::thread_rng();
+        while connected_passable_count != total_passable_count {
+                passable_indices.shuffle(&mut rng);
+                println!("Shuffling passable_indices");
+                let mut shuffled_indices_iter = passable_indices.iter().copied();
+                while let Some(index) = shuffled_indices_iter.next() {
+                if !visited[index] {
+                    visited[index] = true;
+                    connected_passable_count += 1;
+                    println!("Connected Passable Count: {}, Total Passable Count: {}", connected_passable_count, total_passable_count);
+                if connected_passable_count == total_passable_count {
+                    return; // All passable tiles are now connected
+                    }
                 }
             }
         }
     }
+
     // Helper function for checking map connectivity, returns a vector for coordinates of a tile
     pub fn get_passable_neighbors(&self, x: isize, y: isize) -> Vec<(isize, isize)> {
         let directions = [(0, -1), (0, 1), (-1, 0), (1, 0)];
