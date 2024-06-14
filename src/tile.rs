@@ -10,7 +10,7 @@ pub struct Tile {
     pub unit: Option<Unit>,
 }
 
-#[derive(Component, Clone)]
+#[derive(Component, Clone, PartialEq)]
 pub enum TileType {
     Floor,
     Wall,

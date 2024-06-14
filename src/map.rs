@@ -118,6 +118,9 @@ impl Map {
         let spawn_position = map.select_player_spawn_location();
         let spawn_index = spawn_position.x + spawn_position.y * width;
         map.tiles[spawn_index] = Tile { tile_type: TileType::Floor, unit: None };
+        
+        // Check map connectivity
+        map.ensure_map_connectivity(spawn_position);
         return map
     }
 
@@ -159,6 +162,49 @@ impl Map {
         }
         MapPosition::new(0, 0)
     }
+
+    pub fn ensure_map_connectivity(&mut self, starting_position: MapPosition) {
+        let mut visited = vec![false; self.width * self.height];
+        let start_index = starting_position.x + starting_position.y * self.width;
+        let mut queue = vec![(starting_position.x, starting_position.y)];
+        visited[start_index] = true;
+
+        // Perform BFS to find all connected floor tiles
+        while let Some((x, y)) = queue.pop() {
+            for (nx, ny) in self.get_passable_neighbors(x as isize, y as isize) {
+                let index = nx as usize + ny as usize * self.width;
+                if !visited[index] {
+                    visited[index] = true;
+                    queue.push((nx as usize, ny as usize));
+                }
+            }
+        }
+        // Check for disconnected floor tiles and convert them to walls
+        for y in 0..self.height{
+            for x in 0..self.width {
+                let index = x + y * self.width;
+                if self.tiles[index].tile_type == TileType::Floor && !visited[index] {
+                    self.tiles[index].tile_type = TileType::Wall;
+                }
+            }
+        }
+    }
+    // Helper function for checking map connectivity, returns a vector for coordinates of a tile
+    pub fn get_passable_neighbors(&self, x: isize, y: isize) -> Vec<(isize, isize)> {
+        let directions = [(0, -1), (0, 1), (-1, 0), (1, 0)];
+        let mut neighbors = Vec::new();
+        for &(dx, dy) in &directions {
+            let nx = x + dx;
+            let ny = y + dy;
+            if self.in_bounds(nx, ny) {
+                let index = nx as usize + ny as usize * self.width;
+                if self.tiles[index].tile_type.to_passable().0 {
+                    neighbors.push((nx, ny));
+                }
+            }
+        }
+        neighbors
+    } 
 
 }
 
