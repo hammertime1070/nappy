@@ -130,6 +130,70 @@ impl Map {
         return map
     }
 
+    pub fn new_dw(width: usize, height: usize) -> Self {
+        // Implementation of the Drunkards Walk algorithm for map generation
+        let mut tiles = vec![Tile { tile_type:TileType::Wall, unit: None }; width * height];
+
+        // Ensure Walls along the edges
+        for x in 0..width {
+            for y in 0..height {
+                if x == 0 || y == 0 || x == width - 1 || y == height - 1 {
+                    tiles[x + y * width] = Tile {tile_type: TileType::Wall, unit: None };
+                }
+            }
+        }
+
+        // Calculate amount of tiles to carve out
+        let carve_percentage: f32 = 0.55; 
+        let total_tiles = width * height;
+        let target_floor_count = (total_tiles as f32 * carve_percentage) as usize;
+        println!("Total tiles: {}, Target floor count: {}", total_tiles, target_floor_count);
+
+        // Drunkards Walk Algo
+        let mut rng = rand::thread_rng();
+        let mut x = rng.gen_range(1..width - 1);
+        let mut y = rng.gen_range(1..height - 1);
+        let mut floor_count = 0;
+
+        while floor_count < target_floor_count {
+            let index = x + y * width;
+            if tiles[index].tile_type == TileType::Wall {
+                tiles[index] = Tile { tile_type: TileType::Floor, unit: None };
+                floor_count += 1;
+                println!("Carved at ({}, {}), Floor count: {}", x, y, floor_count);
+            }
+
+            let direction = rng.gen_range(0..4);
+            match direction {
+                0 if x > 1 => x -= 1,
+                1 if x < width - 2 => x += 1,
+                2 if y > 1 => y -= 1,
+                3 if y < height - 2 => y += 1,
+                _ => (),
+            }
+        }
+
+        // Create the Map
+        let mut map = Self { width, height, tiles: tiles.clone(), entities: vec![None; tiles.len()] };
+        println!("Map created with dimensions: {}x{}", width, height);
+
+        // Ensure player spawn and exit is changed to a floor tile
+        // Eventually these will be separate tile types
+        let spawn_position = map.select_player_spawn_location();
+        let exit_position = map.select_player_exit_location();
+        let spawn_index = spawn_position.x + spawn_position.y * width;
+        let exit_index = exit_position.x + exit_position.y * width;
+        map.tiles[spawn_index] = Tile { tile_type: TileType::Floor, unit: None };
+        map.tiles[exit_index] = Tile { tile_type: TileType::Floor,  unit: None };
+        println!("Player spawn at ({}, {}), exit at ({}, {})", spawn_position.x, spawn_position.y, exit_position.x, exit_position.y);
+
+        // Check map connectivity
+        //TODO make something that actually checks
+        map.ensure_map_connectivity(spawn_position, exit_position);
+        return map;
+    }
+
+
     pub fn in_bounds(&self, x: isize, y: isize) -> bool {
         x >= 0 && y >= 0 && x < self.width as isize && y < self.height as isize
     }
@@ -179,6 +243,7 @@ impl Map {
     }
 
     pub fn ensure_map_connectivity(&mut self, start_pos: MapPosition, exit_pos: MapPosition) {
+        println!("Checking Map connectivity");
         let mut visited = vec![false; self.width * self.height];
         let start_index = start_pos.x + start_pos.y * self.width;
         let mut queue = vec![(start_pos.x, start_pos.y)];
