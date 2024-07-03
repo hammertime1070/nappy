@@ -1,6 +1,7 @@
 use crate::consts::*;
 use crate::map::MapPosition;
 use crate::unit::*;
+use std::fmt;
 
 use bevy::prelude::*;
 
@@ -16,7 +17,7 @@ pub enum TileType {
     Wall,
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Passable(pub bool);
 
 
