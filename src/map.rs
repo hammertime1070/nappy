@@ -47,7 +47,7 @@ impl MapPosition {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct Map {
     pub width: usize,
     pub height: usize,
@@ -56,25 +56,6 @@ pub struct Map {
 }
 
 impl Map {
-    // pub fn new(width: usize, height: usize) -> Self {
-    //     let mut tiles = Vec::new();
-    //     for i in 0..(width * height) {
-    //         let x = i / width;
-    //         let y = i % height;
-    //         if y == 0 || y == height -1 || x == width - 1 {
-    //             tiles.push(Tile {tile_type: TileType::Wall, unit: None })
-    //         } else {
-    //             tiles.push(Tile {tile_type: TileType::Floor, unit: None })
-    //         }
-    //     }
-    //     return Map {
-    //         width,
-    //         height,
-    //         tiles: tiles.clone(),
-    //         entities: vec![None; tiles.len()],
-    //     };
-    // }
-    
     pub fn as_tile_index(&self, pos: &MapPosition) -> Result<usize, String> {
         let index = pos.x + pos.y * self.width;
         if index >= self.tiles.len() {
@@ -95,6 +76,7 @@ impl Map {
         println!("moving unit");
         Ok(())
     }
+
     pub fn new_rd(width: usize, height: usize) -> Self {
         let mut tiles = Vec::new();
         // Ensure dimensions are odd
@@ -102,8 +84,7 @@ impl Map {
         let height = if height % 2 == 0 { height + 1 } else { height };
         // Initialize Walls and Corners as Walls
         for i in 0..(width * height) {
-            let x = i / width;
-            let y = i % height;
+            let (x, y) = index_to_coords(i, width);
             if x == 0 || y == 0 || y == height -1 || x == width - 1 {
                 tiles.push(Tile {tile_type: TileType::Wall, unit: None })
             } else {
@@ -111,7 +92,7 @@ impl Map {
             }
         }
         // Perform recursive division maze generation
-        Self::divide(&mut tiles, 1, width - 2, 1, height - 2);
+        Self::divide(&mut tiles, 0, 0, width, height, choose_orientation(width, height), width);
         // Create the map object
         let mut map = Self {
             width,
@@ -120,87 +101,84 @@ impl Map {
             entities: vec![None; width * height],
         };
          // Ensure player spawn is changed to a floor tile
-        //  let spawn_position = map.select_player_spawn_location();
-        //  let spawn_index = spawn_position.x + spawn_position.y * width;
-        //  map.tiles[spawn_index] = Tile { tile_type: TileType::Floor, unit: None };
+         let spawn_position = map.select_player_spawn_location();
+         let spawn_index = spawn_position.x + spawn_position.y * width;
+         map.tiles[spawn_index] = Tile { tile_type: TileType::Floor, unit: None };
  
-        //  // Ensure player exit is changed to a floor tile
-        //  let exit_position = map.select_player_exit_location();
-        //  let exit_index = exit_position.x + exit_position.y * width;
-        //  map.tiles[exit_index] = Tile { tile_type: TileType::Floor, unit: None };
+         // Ensure player exit is changed to a floor tile
+         let exit_position = map.select_player_exit_location();
+         let exit_index = exit_position.x + exit_position.y * width;
+         map.tiles[exit_index] = Tile { tile_type: TileType::Floor, unit: None };
+
+        // Ensure tiles above entrance and below exit are floor tiles
+        //TODO: Fix this obvious hacked together garbage
+        // Currently there is a bug where if there is a central corridor wall the ensuring connectivity deletes all the walls
+        if spawn_position.y > 0 {
+            let above_spawn_index = spawn_index - width;
+            map.tiles[above_spawn_index].tile_type = TileType::Floor;
+        }
+        if exit_position.y < height - 1 {
+            let below_exit_index = exit_index + width;
+            map.tiles[below_exit_index].tile_type = TileType::Floor;
+        }
+
+         // Ensure map connectivity
+         let mut connected_map = map.clone();
+         connected_map.ensure_map_connectivity(spawn_position, exit_position);
         
-        return map;
+        return connected_map;
 
     }
 
-//TODO Still drawing diagonal lines
-
-    fn divide(tiles: &mut [Tile], x1: usize, x2: usize, y1: usize, y2: usize) {
-        let min_segment_size: usize = 8;
-        if x2 >= x1 && y2 >= y1 {
-            let mut rng = rand::thread_rng();
-            // determine whether to divide horizontally or vertically
-            let hv: char = if (x2 - x1) > (y2 - y1) { 'h' } else { 'v' };
-            if hv == 'h' && (y2 - y1) >= min_segment_size {
-                // divide horizontally
-                let split = rng.gen_range(y1..=y2);
-                let hole = rng.gen_range(x1..=x2);
-                for i in x1..=x2 {
-                    if i != hole {
-                        let index = i + split * (x2 + 1);
-                        tiles[index].tile_type = TileType::Wall;
-                        println!("Placed wall at ({}, {})", i, split);
-                    }
-                }
-                // recursively divide the sections
-                Self::divide(tiles, x1, x2, y1, split - 1);
-                Self::divide(tiles, x1, x2, split + 1, y2);
-            } else if hv == 'v' && (x2 - x1) >= min_segment_size {
-                // divide vertically
-                let split = rng.gen_range(x1..=x2);
-                let hole = rng.gen_range(y1..=y2);
-                for j in y1..=y2 {
-                    if j != hole {
-                        let index = split + j * (x2 + 1);
-                        tiles[index].tile_type = TileType::Wall;
-                        println!("Placed wall at ({}, {})", split, j);
-                    }
-                }
-                // recursively divide the sections
-                Self::divide(tiles, x1, split - 1, y1, y2);
-                Self::divide(tiles, split + 1, x2, y1, y2);
-            }
+    fn divide(tiles: &mut [Tile], x: usize, y: usize, width: usize, height: usize, orientation: char, map_width: usize) {
+        let minimum_wall_size: usize = 8;
+        // Base Case
+        if width < minimum_wall_size || height < minimum_wall_size {
+            return;
         }
-    }
 
-    // Flood Fill Algorithm changes
-    pub fn new_ff(width: usize, height: usize) -> Self {
-        let mut tiles = vec![Tile { tile_type: TileType::Floor, unit: None }; width * height];
-        for x in 0..width {
-            for y in 0..height {
-                let index = x + y * width;
-                if x == 0 || y == 0 || x == width - 1 || y == height - 1 || rand::random::<f32>() < 0.3 {
-                    tiles[index] = Tile { tile_type: TileType::Wall, unit: None };
-                } else {
-                    tiles[index] = Tile { tile_type: TileType::Floor, unit: None };
-                }
+        let horizontal = orientation == 'h';
+
+        // Determine where wall will be drawn
+        let mut wx = x + if horizontal { 0 } else {rand::thread_rng().gen_range(0..width - 1) };
+        let mut wy = y + if horizontal { rand::thread_rng().gen_range(0..height - 1) } else { 0 };
+
+        // Where will passage be drawn
+        let px = wx + if horizontal { rand::thread_rng().gen_range(0..width) } else { 0 };
+        let py = wy + if horizontal { 0 } else { rand::thread_rng().gen_range(0..height) };
+
+        // What direction will the wall be drawn
+        let dx = if horizontal { 1 } else { 0 };
+        let dy = if horizontal { 0 } else { 1 };
+
+        // How long will the wall be
+        let length = if horizontal { width } else { height };
+
+        // Create the wall 
+        for _ in 0..length {
+            if wx != px || wy != py {
+                let index = coords_to_index(wx, wy, map_width);
+                tiles[index].tile_type = TileType::Wall;
+                println!("Placed wall at ({}, {})", wx, wy);
             }
+            wx += dx;
+            wy += dy;
         }
-        // Create the map
-        let mut map = Self { width, height, tiles: tiles.clone(), entities: vec![None; tiles.len()]};
-        // Ensure player spawn is changed to a floor tile
-        let spawn_position = map.select_player_spawn_location();
-        let spawn_index = spawn_position.x + spawn_position.y * width;
-        map.tiles[spawn_index] = Tile { tile_type: TileType::Floor, unit: None };
 
-        // Ensure player exit is changed to a floor tile
-        let exit_position = map.select_player_exit_location();
-        let exit_index = exit_position.x + exit_position.y * width;
-        map.tiles[exit_index] = Tile { tile_type: TileType::Floor, unit: None };
+        // Determine the bounds of the created rooms and recurse
+        let (nx, ny, w, h) = if horizontal {
+            (x, y, width, wy - y)
+        } else {
+            (x, y, wx - x, height)
+        };
+        Self::divide(tiles, nx, ny, w, h, choose_orientation(w, h), map_width);
+        let (nx, ny, w, h) = if horizontal {
+            (x, wy + 1, width, y + height - wy - 1)
+        } else {
+            (wx + 1, y, x + width - wx - 1, height)
+        };
+        Self::divide(tiles, nx, ny, w, h, choose_orientation(w, h), map_width);
 
-        // Check map connectivity
-        map.ensure_map_connectivity(spawn_position, exit_position);
-        return map
     }
 
     pub fn in_bounds(&self, x: isize, y: isize) -> bool {
@@ -254,56 +232,69 @@ impl Map {
     pub fn ensure_map_connectivity(&mut self, start_pos: MapPosition, exit_pos: MapPosition) {
         println!("Checking Map connectivity");
         let mut visited = vec![false; self.width * self.height];
-        let start_index = start_pos.x + start_pos.y * self.width;
+        let start_index = coords_to_index(start_pos.x, start_pos.y, self.width);
         let mut queue = vec![(start_pos.x, start_pos.y)];
         visited[start_index] = true;
     
         // Perform BFS to find all connected floor tiles
         while let Some((x, y)) = queue.pop() {
             for (nx, ny) in self.get_passable_neighbors(x as isize, y as isize) {
-                let index = nx as usize + ny as usize * self.width;
+                let index = coords_to_index(nx as usize, ny as usize, self.width);
                 if !visited[index] {
                     visited[index] = true;
                     queue.push((nx as usize, ny as usize));
                 }
             }
         }
-    
         // Get the number of passable tiles found during BFS
         let mut connected_passable_count = visited.iter().filter(|&v| *v).count();
-    
         // Check if the number of connected passable tiles matches the total passable tiles
         let total_passable_count = self.tiles.iter().filter(|t| t.tile_type.to_passable().0).count();
         println!("Connected Passable Count: {}, Total Passable Count: {}", connected_passable_count, total_passable_count);
         if connected_passable_count == total_passable_count {
             return; // No need to shuffle
         }
-    
-        // Exclude player spawn and exit from passable indices
-        let mut passable_indices: Vec<usize> = (0..self.tiles.len())
-            .filter(|&i| self.tiles[i].tile_type.to_passable().0 && i != start_index && i != exit_pos.x + exit_pos.y * self.width)
-            .collect();
-    
-        // Perform Fisher-Yates shuffle until passable tile count matches
-        let mut rng = rand::thread_rng();
-        while connected_passable_count != total_passable_count {
-                passable_indices.shuffle(&mut rng);
-                println!("Shuffling passable_indices");
-                let mut shuffled_indices_iter = passable_indices.iter().copied();
-                while let Some(index) = shuffled_indices_iter.next() {
-                if !visited[index] {
-                    visited[index] = true;
-                    connected_passable_count += 1;
-                    println!("Connected Passable Count: {}, Total Passable Count: {}", connected_passable_count, total_passable_count);
-                if connected_passable_count == total_passable_count {
-                    return; // All passable tiles are now connected
-                    }
+        // Identify disconnected areas
+        let mut disconnected_tiles = vec![];
+        for (index, &is_visited) in visited.iter().enumerate() {
+            if self.tiles[index].tile_type == TileType::Floor && !is_visited {
+                disconnected_tiles.push(index);
+            }
+        }
+
+        for index in disconnected_tiles {
+            let (x, y) = index_to_coords(index as usize, self.width); 
+            // modify existing walls to create a connection
+            for (nx, ny) in self.get_all_neighbors(x as isize, y as isize) {
+                let adj_index = coords_to_index(nx as usize, ny as usize, self.width);
+                if self.tiles[adj_index].tile_type == TileType::Wall && self.is_in_border(nx as isize, ny as isize) {
+                    // Turn it into a floor
+                    self.tiles[adj_index].tile_type = TileType::Floor;
+                    println!("Changed wall at ({}, {}) to floor", nx, ny);
+                    self.ensure_map_connectivity(start_pos, exit_pos);
                 }
             }
         }
     }
 
-    // Helper function for checking map connectivity, returns a vector for coordinates of a tile
+    fn is_in_border(&self, x: isize, y: isize) -> bool {
+        x == 0 || y == 0 || x == self.width as isize - 1 || y == self.height as isize - 1
+    }
+
+    pub fn get_all_neighbors(&self, x:isize, y: isize) -> Vec<(isize, isize)> {
+        let directions = [(0, -1), (0, 1), (-1, 0), (1, 0)];
+        let mut neighbors = Vec::new();
+        for &(dx, dy) in &directions {
+            let nx = x + dx;
+            let ny = y + dy;
+            if self.in_bounds(nx, ny) {
+                let index = nx as usize + ny as usize * self.width;
+                    neighbors.push((nx, ny));
+            }
+        }
+        return neighbors;
+    }
+
     pub fn get_passable_neighbors(&self, x: isize, y: isize) -> Vec<(isize, isize)> {
         let directions = [(0, -1), (0, 1), (-1, 0), (1, 0)];
         let mut neighbors = Vec::new();
@@ -319,7 +310,6 @@ impl Map {
         }
         neighbors
     } 
-
 }
 
 pub fn move_left(
@@ -352,4 +342,32 @@ pub fn move_down(
 ) -> Result<(), String> {
     map.move_unit(position, &position.down()?)?;
     Ok(())
+}
+
+// Helper functions for recursive division
+
+pub fn coords_to_index(x: usize, y: usize, width: usize) -> usize {
+    return x + width * y;
+}
+
+pub fn index_to_coords(index: usize, width: usize) -> (usize, usize) {
+    let x = index % width;
+    let y = index / width;
+    return (x, y);
+}
+
+pub fn choose_orientation(width: usize, height: usize) -> char {
+    if width < height {
+        // HORIZONTAL
+        return 'h';
+    } else if height < width {
+        // VERTICAL
+        return 'v';
+    } else {
+        if rand::random::<bool>() {
+            return 'h';
+        } else {
+            return 'v';
+        }
+    }
 }
