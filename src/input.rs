@@ -58,6 +58,7 @@ pub fn check_player_move(
         move_down(&mut map, &mut pos_player).unwrap();
         }
     if pos_player_old != pos_player.clone() {
+        println!("Going to Enemy Turn");
         next_game_state.set(GameState::EnemyTurn);
     }
 }
