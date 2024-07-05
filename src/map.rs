@@ -194,7 +194,7 @@ impl Map {
         }
     }
 
-    pub fn random_passable_tile(&self) -> Option<(usize, usize)> {
+    pub fn random_passable_tile(&self) -> MapPosition {
         let mut rng = rand::thread_rng();
         let mut tries = 1000;
         while tries > 0 {
@@ -203,12 +203,12 @@ impl Map {
             if let Some(tile) = self.get_tile(x as isize, y as isize) {
                 // TODO make this look less stupid
                 if tile.tile_type.to_passable().0 {
-                    return Some((x, y));
+                    return MapPosition::new(x, y);
                 }
             }
             tries -= 1;
         }
-        None
+        return MapPosition::new(0, 0);
     }
 
     pub fn select_player_spawn_location(&self) -> MapPosition {
@@ -267,11 +267,13 @@ impl Map {
             // modify existing walls to create a connection
             for (nx, ny) in self.get_all_neighbors(x as isize, y as isize) {
                 let adj_index = coords_to_index(nx as usize, ny as usize, self.width);
-                if self.tiles[adj_index].tile_type == TileType::Wall && self.is_in_border(nx as isize, ny as isize) {
+                if self.tiles[adj_index].tile_type == TileType::Wall && !self.is_in_border(nx as isize, ny as isize) {
+                    println!("Tile at {}{} is in border is {}", nx, ny, self.is_in_border(nx, ny));
                     // Turn it into a floor
                     self.tiles[adj_index].tile_type = TileType::Floor;
                     println!("Changed wall at ({}, {}) to floor", nx, ny);
                     self.ensure_map_connectivity(start_pos, exit_pos);
+                    return;
                 }
             }
         }

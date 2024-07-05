@@ -6,11 +6,15 @@ mod player;
 mod tile;
 mod input;
 mod unit;
+mod resource;
+mod enemy;
 
 use consts::*;
 use map::*;
 use player::*;
 use input::*;
+use resource::*;
+use enemy::*;
 
 use tile::TileBundle;
 
@@ -37,6 +41,7 @@ fn setup(
     let map: Map = Map::new_rd(18, 18);
     spawn_tiles(&mut commands, &map, &atlas_handle, &texture_handle);
     spawn_player(&mut commands, &map,  &atlas_handle, &texture_handle);
+    test_spawn_enemy(&mut commands, &map, &atlas_handle, &texture_handle);
     commands.spawn(map);
 }
 
@@ -45,6 +50,23 @@ fn spawn_player(commands: &mut Commands, map: &Map, atlas_handle: &Handle<Textur
     let (sprite_x, sprite_y) = calculate_sprite_position(&map_position);
     commands.spawn(PlayerBundle {
         player: Player,
+        position: map_position,
+        sprite: SpriteSheetBundle {
+            atlas: TextureAtlas {
+                layout: atlas_handle.clone(),
+                index: SPRITE_ID_PLAYER,
+            },
+            texture: texture_handle.clone(),
+            transform: Transform::from_xyz(sprite_x, sprite_y, Z_INDEX_PLAYER),
+            ..Default::default()
+        },
+    });
+}
+
+fn test_spawn_enemy(commands: &mut Commands, map: &Map, atlas_handle: &Handle<TextureAtlasLayout>, texture_handle: &Handle<Image>) {
+    let map_position = map.random_passable_tile();
+    let (sprite_x, sprite_y) = calculate_sprite_position(&map_position);
+    commands.spawn(EnemyBundle {
         position: map_position,
         sprite: SpriteSheetBundle {
             atlas: TextureAtlas {
