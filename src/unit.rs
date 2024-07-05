@@ -1,11 +1,12 @@
 use bevy::prelude::*;
 
-#[derive(Component, Clone)]
+#[derive(Component, Clone, Copy)]
 pub struct Unit {
     pub unit_type: UnitType,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub enum UnitType {
     Player,
+    Enemy,
 }

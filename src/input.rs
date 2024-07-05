@@ -5,13 +5,17 @@ pub const KEY_PLAYER_DOWN: KeyCode = KeyCode::KeyS;
 
 use crate::map::*;
 use crate::player::*;
+use crate::states::*;
 use bevy::prelude::*;
 
 pub struct InputPlugin;
 
 impl Plugin for InputPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, check_player_move);
+        app .add_systems(
+            Update,
+            check_player_move.run_if(in_state(GameState::PlayerTurn)),
+        );
     }
 }
 
@@ -19,6 +23,7 @@ pub fn check_player_move(
     mut q_actors: Query<&mut MapPosition, With<Player>>,
     mut q_map: Query<&mut Map>,
     input: Res<ButtonInput<KeyCode>>,
+    mut next_game_state: ResMut<NextState<GameState>>,
 ) {
     let mut map = q_map.single_mut();
 
@@ -52,4 +57,7 @@ pub fn check_player_move(
         println!("Down key pressed");
         move_down(&mut map, &mut pos_player).unwrap();
         }
+    if pos_player_old != pos_player.clone() {
+        next_game_state.set(GameState::EnemyTurn);
+    }
 }

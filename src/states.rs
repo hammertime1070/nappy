@@ -1,14 +1,16 @@
-#[derive(States)]
-pub enum AppState {
-    #[default]
-    LoadingAssets,
-    InGame,
-    GameOver,
-}
+use bevy::prelude::*;
 
-#[derive(States)]
+// #[derive(States)]
+// pub enum AppState {
+//     #[default]
+//     LoadingAssets,
+//     InGame,
+//     GameOver,
+// }
+
+#[derive(States, Debug, Clone, Copy, Default, Eq, PartialEq, Hash)]
 pub enum GameState {
-    3[default]
+    #[default]
     Uninitialized,
     Initializing,
     PlayerTurn,

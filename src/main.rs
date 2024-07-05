@@ -8,6 +8,7 @@ mod input;
 mod unit;
 mod resource;
 mod enemy;
+mod states;
 
 use consts::*;
 use map::*;
@@ -15,23 +16,29 @@ use player::*;
 use input::*;
 use resource::*;
 use enemy::*;
+use states::*;
 
+use states::GameState;
 use tile::TileBundle;
-
+//TODO Broke movement, not appropriately changing gamestates after player input
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(WindowPlugin { primary_window: Some(Window { resolution: (WINDOW_WIDTH, WINDOW_HEIGHT).into(), ..Default::default()}), ..Default::default() }).set(ImagePlugin::default_nearest()))
         .add_plugins(InputPlugin)
+        .init_state::<GameState>()
         .add_systems(Startup, setup)
-        .add_systems(Update, update_sprite_transforms)
-        .run()
+        // .add_systems(Update, update_sprite_transforms)
+        .add_systems(OnEnter(GameState::PlayerTurn), update_sprite_transforms)
+        .add_systems(OnEnter(GameState::EnemyTurn), update_sprite_transforms)
+        .run();
 }
 
 fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlasLayout>>,
+    mut next_game_state: ResMut<NextState<GameState>>,
 ) {
     commands.spawn(Camera2dBundle::default());
     let texture_handle = asset_server.load("sprite_sheet.png");
@@ -43,6 +50,7 @@ fn setup(
     spawn_player(&mut commands, &map,  &atlas_handle, &texture_handle);
     test_spawn_enemy(&mut commands, &map, &atlas_handle, &texture_handle);
     commands.spawn(map);
+    next_game_state.set(GameState::PlayerTurn);
 }
 
 fn spawn_player(commands: &mut Commands, map: &Map, atlas_handle: &Handle<TextureAtlasLayout>, texture_handle: &Handle<Image>) {

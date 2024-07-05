@@ -7,7 +7,7 @@ use crate::consts::*;
 
 
 
-#[derive(Component, Clone, Copy)]
+#[derive(Component, Clone, Copy, PartialEq)]
 pub struct MapPosition {
     pub x: usize,
     pub y: usize,
@@ -312,6 +312,72 @@ impl Map {
         }
         neighbors
     } 
+}
+
+/// Returns a vector of reachable positions from a specific map position.
+pub fn enumerate_reachable_positions(
+    position: &MapPosition,
+    map: &Map,
+) -> Vec<MapPosition> {
+    let mut reachable_positions: Vec<MapPosition> = vec![];
+
+    if can_move_left(position, map) {
+        reachable_positions.push(MapPosition {
+            x: position.x - 1,
+            y: position.y,
+        });
+    }
+    if can_move_right(position, map) {
+        reachable_positions.push(MapPosition {
+            x: position.x + 1,
+            y: position.y,
+        });
+    }
+    if can_move_up(position, map) {
+        reachable_positions.push(MapPosition {
+            x: position.x,
+            y: position.y - 1,
+        });
+    }
+    if can_move_down(position, map) {
+        reachable_positions.push(MapPosition {
+            x: position.x,
+            y: position.y + 1,
+        });
+    }
+    return reachable_positions;
+}
+
+pub fn can_move_left(pos: &MapPosition, map: &Map) -> bool {
+    if pos.x > 0 {
+        map.tiles[pos.x + pos.y * map.width - 1].is_walkable()
+    } else {
+        false
+    }
+}
+
+pub fn can_move_right(pos: &MapPosition, map: &Map) -> bool {
+    if pos.x < map.width - 1 {
+        map.tiles[pos.x + pos.y * map.width + 1].is_walkable()
+    } else {
+        false
+    }
+}
+
+pub fn can_move_up(pos: &MapPosition, map: &Map) -> bool {
+    if pos.y > 0 {
+        map.tiles[pos.x + (pos.y - 1) * map.width].is_walkable()
+    } else {
+        false
+    }
+}
+
+pub fn can_move_down(pos: &MapPosition, map: &Map) -> bool {
+    if pos.y < map.height - 1 {
+        map.tiles[pos.x + (pos.y + 1) * map.width].is_walkable()
+    } else {
+        false
+    }
 }
 
 pub fn move_left(

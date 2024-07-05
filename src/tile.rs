@@ -5,13 +5,22 @@ use std::fmt;
 
 use bevy::prelude::*;
 
-#[derive(Component, Clone)]
+#[derive(Component, Clone, Copy)]
 pub struct Tile {
     pub tile_type: TileType,
     pub unit: Option<Unit>,
 }
 
-#[derive(Component, Clone, PartialEq)]
+impl Tile {
+    pub fn is_walkable(self) -> bool {
+        match self.tile_type {
+            TileType::Floor => true,
+            TileType::Wall => false,
+        }
+    }
+}
+
+#[derive(Component, Clone, PartialEq, Copy)]
 pub enum TileType {
     Floor,
     Wall,
