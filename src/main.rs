@@ -78,6 +78,7 @@ fn test_spawn_enemy(commands: &mut Commands, map: &Map, atlas_handle: &Handle<Te
     let (sprite_x, sprite_y) = calculate_sprite_position(&map_position);
     commands.spawn(EnemyBundle {
         enemy: Enemy,
+        movement_strategy: MovementStrategy{strategy: ConcreteMovementStrategy::MoveRandomly },
         unit: Unit{unit_type: UnitType::Enemy },
         position: map_position,
         sprite: SpriteSheetBundle {

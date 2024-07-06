@@ -34,25 +34,25 @@ pub fn check_player_move(
 
     let pos_player_old = pos_player.clone();
 
-    if input.just_pressed(KEY_PLAYER_RIGHT)
+    if input.just_pressed(KEY_PLAYER_RIGHT) && can_move_right(&pos_player_old, &map)
         {
         println!("Right key pressed");
         move_right(&mut map, &mut pos_player).unwrap();
         }
 
-    if input.just_pressed(KEY_PLAYER_LEFT)
+    if input.just_pressed(KEY_PLAYER_LEFT) && can_move_left(&pos_player_old, &map)
         {
         println!("Left key pressed");
         move_left(&mut map, &mut pos_player).unwrap();
         }
 
-    if input.just_pressed(KEY_PLAYER_UP)
+    if input.just_pressed(KEY_PLAYER_UP) && can_move_up(&pos_player_old, &map)
         {
         println!("Up key pressed");
         move_up(&mut map, &mut pos_player).unwrap();
         }
 
-    if input.just_pressed(KEY_PLAYER_DOWN)
+    if input.just_pressed(KEY_PLAYER_DOWN) && can_move_down(&pos_player_old, &map)
         {
         println!("Down key pressed");
         move_down(&mut map, &mut pos_player).unwrap();

@@ -17,22 +17,37 @@ impl Plugin for EnemyPlugin {
 #[derive(Component)]
 pub struct Enemy;
 
+#[derive(Component)]
+pub struct MovementStrategy {
+    pub strategy: ConcreteMovementStrategy,
+}
+
+pub enum ConcreteMovementStrategy {
+    MoveRandomly,
+}
+
 #[derive(Bundle)]
 pub struct EnemyBundle {
     pub enemy: Enemy,
+    pub movement_strategy:MovementStrategy,
     pub position: MapPosition,
     pub sprite: SpriteSheetBundle,
     pub unit: Unit,
 }
 
 pub fn move_unit(
-    mut q_units: Query<(&mut MapPosition, &Unit)>,
+    mut q_units: Query<(&mut MapPosition, &MovementStrategy)>,
     mut q_map: Query<&mut Map>,
     mut next_game_state: ResMut<NextState<GameState>>,
 ) {
     let mut map = q_map.single_mut();
-    for (mut unit_pos, unit) in q_units.iter_mut() {
-        move_randomly(&mut unit_pos, &mut map);
+    for (mut unit_pos, movement_strategy) in q_units.iter_mut() {
+        match movement_strategy.strategy {
+            ConcreteMovementStrategy::MoveRandomly => {
+                move_randomly(&mut unit_pos, &mut map);
+            }
+            // Add more cases here as you add more strategies
+        }
     }
     println!("Going to Player Turn");
     next_game_state.set(GameState::PlayerTurn);
