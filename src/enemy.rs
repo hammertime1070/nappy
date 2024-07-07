@@ -4,6 +4,7 @@ use crate::states::*;
 use bevy::prelude::*;
 use rand::Rng;
 use crate::resource::HitPoints;
+use crate::player::*;
 
 pub struct EnemyPlugin;
 
@@ -24,6 +25,7 @@ pub struct MovementStrategy {
 
 pub enum ConcreteMovementStrategy {
     MoveRandomly,
+    MoveGreedily,
 }
 
 #[derive(Bundle)]
@@ -36,15 +38,20 @@ pub struct EnemyBundle {
 }
 
 pub fn move_unit(
-    mut q_units: Query<(&mut MapPosition, &MovementStrategy)>,
+    mut q_units: Query<(&mut MapPosition, &MovementStrategy), Without<Player>>,
+    mut q_player_pos: Query<(&MapPosition), With<Player>>,
     mut q_map: Query<&mut Map>,
     mut next_game_state: ResMut<NextState<GameState>>,
 ) {
     let mut map = q_map.single_mut();
+    let player_pos = q_player_pos.single();
     for (mut unit_pos, movement_strategy) in q_units.iter_mut() {
         match movement_strategy.strategy {
             ConcreteMovementStrategy::MoveRandomly => {
                 move_randomly(&mut unit_pos, &mut map);
+            },
+            ConcreteMovementStrategy::MoveGreedily => {
+                move_greedily(&mut unit_pos, &mut map, &player_pos);
             }
             // Add more cases here as you add more strategies
         }
@@ -63,11 +70,12 @@ pub fn move_randomly(mut pos_unit: &mut MapPosition, map: &mut Map) {
     }
 }
 
-pub fn move_greedily(mut pos_unit: &mut MapPosition, map: &mut Map, &pos_player: &MapPosition) {
+pub fn move_greedily(mut pos_unit: &mut MapPosition, map: &mut Map, pos_player: &MapPosition) {
     println!("attempting to move greedily");
-    let pos_reachable: enumerate_reachable_positions(&pos_unit.clone(), &map);
+    let mut pos_reachable = enumerate_reachable_positions(&pos_unit.clone(), &map);
     // Sorting reachable positions by distance to player
-    pos_reachable.sort_by_key(|pos| pos.dist(pos_player));
+    pos_reachable.sort_by_key(|pos| pos.distance(pos_player));
+    // Move towards player
     if let Some(new_pos) = pos_reachable.first() {
         map.move_unit(&mut pos_unit, new_pos).unwrap();
     }

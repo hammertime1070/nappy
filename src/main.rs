@@ -74,20 +74,37 @@ fn spawn_player(commands: &mut Commands, map: &Map, atlas_handle: &Handle<Textur
 }
 
 fn test_spawn_enemy(commands: &mut Commands, map: &Map, atlas_handle: &Handle<TextureAtlasLayout>, texture_handle: &Handle<Image>) {
-    let map_position = map.random_passable_tile();
-    let (sprite_x, sprite_y) = calculate_sprite_position(&map_position);
+    let random_map_position = map.random_passable_tile();
+    let (random_sprite_x, random_sprite_y) = calculate_sprite_position(&random_map_position);
+    let greedy_map_position = map.random_passable_tile();
+    let (greedy_sprite_x, greedy_sprite_y) = calculate_sprite_position(&greedy_map_position);
     commands.spawn(EnemyBundle {
         enemy: Enemy,
         movement_strategy: MovementStrategy{strategy: ConcreteMovementStrategy::MoveRandomly },
         unit: Unit{unit_type: UnitType::Enemy },
-        position: map_position,
+        position: random_map_position,
         sprite: SpriteSheetBundle {
             atlas: TextureAtlas {
                 layout: atlas_handle.clone(),
                 index: SPRITE_ID_PLAYER,
             },
             texture: texture_handle.clone(),
-            transform: Transform::from_xyz(sprite_x, sprite_y, Z_INDEX_PLAYER),
+            transform: Transform::from_xyz(random_sprite_x, random_sprite_y, Z_INDEX_PLAYER),
+            ..Default::default()
+        },
+    });
+    commands.spawn(EnemyBundle {
+        enemy: Enemy,
+        movement_strategy: MovementStrategy{strategy: ConcreteMovementStrategy::MoveGreedily },
+        unit: Unit{unit_type: UnitType::Enemy },
+        position: greedy_map_position,
+        sprite: SpriteSheetBundle {
+            atlas: TextureAtlas {
+                layout: atlas_handle.clone(),
+                index: SPRITE_ID_PLAYER,
+            },
+            texture: texture_handle.clone(),
+            transform: Transform::from_xyz(greedy_sprite_x, greedy_sprite_y, Z_INDEX_PLAYER),
             ..Default::default()
         },
     });

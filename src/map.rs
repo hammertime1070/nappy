@@ -18,6 +18,15 @@ impl MapPosition {
         MapPosition{ x, y }
     }
 
+    pub fn distance(&self, target_pos: &MapPosition) -> usize {
+        // This is an annoying way to get the manhattan distance
+        // Turns out using usizes for stuff is very annoying
+        let dx = if self.x > target_pos.x { self.x - target_pos.x } else { target_pos.x - self.x };
+        let dy = if self.y > target_pos.y { self.y - target_pos.y } else { target_pos.y - self.y };
+        return dx + dy;
+    }
+    
+
     pub fn as_sprite_coordinates(&self) -> (f32, f32) {
         (
             (self.x as f32 * SPRITE_TILE_WIDTH) + (SPRITE_TILE_WIDTH / 2.0),
