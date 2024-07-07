@@ -62,3 +62,13 @@ pub fn move_randomly(mut pos_unit: &mut MapPosition, map: &mut Map) {
         map.move_unit(&mut pos_unit, &pos_random).unwrap();
     }
 }
+
+pub fn move_greedily(mut pos_unit: &mut MapPosition, map: &mut Map, &pos_player: &MapPosition) {
+    println!("attempting to move greedily");
+    let pos_reachable: enumerate_reachable_positions(&pos_unit.clone(), &map);
+    // Sorting reachable positions by distance to player
+    pos_reachable.sort_by_key(|pos| pos.dist(pos_player));
+    if let Some(new_pos) = pos_reachable.first() {
+        map.move_unit(&mut pos_unit, new_pos).unwrap();
+    }
+}
