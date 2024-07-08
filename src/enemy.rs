@@ -37,6 +37,24 @@ pub struct EnemyBundle {
     pub unit: Unit,
 }
 
+pub fn enemy_behavior_system(
+    mut q_player: Query<(Entity, &MapPosition), With<Player>,
+    mut q_units: Query<(Entity, &mut MapPosition, &MovementStrategy), Without<Player>>,
+    mut q_map: Query<&mut Map>,
+    mut next_game_state: ResMut<NextState<GameState>>,
+){
+    let mut map = q_map.single_mut();
+    let (player_entity, player_pos) = q_player.single();
+    for (entity, enemy_position, movement_strategy) in q_units.iter() {
+        if enemy_position.distance(player_pos) == 1 {
+            // Implement Attack Strategies if needed
+        } else {
+            // Implement Movement Strategies 
+        }
+    }
+}
+
+
 pub fn move_unit(
     mut q_units: Query<(&mut MapPosition, &MovementStrategy), Without<Player>>,
     mut q_player_pos: Query<(&MapPosition), With<Player>>,
