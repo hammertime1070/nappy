@@ -14,7 +14,7 @@ impl Plugin for InputPlugin {
     fn build(&self, app: &mut App) {
         app .add_systems(
             Update,
-            check_player_move.run_if(in_state(GameState::PlayerTurn)),
+            check_player_move_other.run_if(in_state(GameState::PlayerTurn)),
         );
     }
 }
@@ -63,6 +63,7 @@ pub fn check_player_move(
     }
 }
 
+//TODO Fix this shit it is broken
 pub fn check_player_move_other(
     mut q_actors: Query<&mut MapPosition, With<Player>>,
     mut q_map: Query<&mut Map>,
@@ -78,21 +79,21 @@ pub fn check_player_move_other(
 
     let pos_player_old = pos_player.clone();
 
-    if input.just_pressed(KEY_PLAYER_RIGHT) && map.check_if_valid_move(&pos_player_old.right())
+    if input.just_pressed(KEY_PLAYER_RIGHT) && map.check_if_valid_move(&pos_player_old.right().unwrap())
         {
-        map.move_unit(&mut pos_player_old, pos_player_old.right());
+        map.move_unit(&mut pos_player_old, pos_player_old.right().unwrap());
         }
-    if input.just_pressed(KEY_PLAYER_LEFT) && map.check_if_valid_move(&pos_player_old.left())
+    if input.just_pressed(KEY_PLAYER_LEFT) && map.check_if_valid_move(&pos_player_old.left().unwrap())
         {
-        map.move_unit(&mut pos_player_old, pos_player_old.left());
+        map.move_unit(&mut pos_player_old, pos_player_old.left().unwrap());
         }
-    if input.just_pressed(KEY_PLAYER_UP) && map.check_if_valid_move(&pos_player_old.up())
+    if input.just_pressed(KEY_PLAYER_UP) && map.check_if_valid_move(&pos_player_old.up().unwrap())
         {
-        map.move_unit(&mut pos_player_old, pos_player_old.up());
+        map.move_unit(&mut pos_player_old, pos_player_old.up().unwrap());
         }
-    if input.just_pressed(KEY_PLAYER_DOWN) && map.check_if_valid_move(&pos_player_old.down())
+    if input.just_pressed(KEY_PLAYER_DOWN) && map.check_if_valid_move(&pos_player_old.down().unwrap())
         {
-        map.move_unit(&mut pos_player_old, pos_player_old.down());
+        map.move_unit(&mut pos_player_old, pos_player_old.down().unwrap());
         }
     if pos_player_old != pos_player.clone() {
         println!("Going to Enemy Turn");
