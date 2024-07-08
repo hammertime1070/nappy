@@ -60,6 +60,7 @@ fn spawn_player(commands: &mut Commands, map: &Map, atlas_handle: &Handle<Textur
     let (sprite_x, sprite_y) = calculate_sprite_position(&map_position);
     commands.spawn(PlayerBundle {
         player: Player,
+        unit: Unit{unit_type: UnitType::Player },
         position: map_position,
         sprite: SpriteSheetBundle {
             atlas: TextureAtlas {
