@@ -18,6 +18,10 @@ impl Tile {
             TileType::Wall => false,
         }
     }
+
+    pub fn is_occupied(self) -> bool {
+        self.unit.is_some()
+    }
 }
 
 #[derive(Component, Clone, PartialEq, Copy)]
