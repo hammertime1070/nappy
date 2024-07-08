@@ -62,3 +62,40 @@ pub fn check_player_move(
         next_game_state.set(GameState::EnemyTurn);
     }
 }
+
+pub fn check_player_move_other(
+    mut q_actors: Query<&mut MapPosition, With<Player>>,
+    mut q_map: Query<&mut Map>,
+    input: Res<ButtonInput<KeyCode>>,
+    mut next_game_state: ResMut<NextState<GameState>>,
+) {
+    let mut map = q_map.single_mut();
+
+    let mut pos_player = q_actors
+        .iter_mut()
+        .last()
+        .expect("no player pos found");
+
+    let pos_player_old = pos_player.clone();
+
+    if input.just_pressed(KEY_PLAYER_RIGHT) && map.check_if_valid_move(&pos_player_old.right())
+        {
+        map.move_unit(&mut pos_player_old, pos_player_old.right());
+        }
+    if input.just_pressed(KEY_PLAYER_LEFT) && map.check_if_valid_move(&pos_player_old.left())
+        {
+        map.move_unit(&mut pos_player_old, pos_player_old.left());
+        }
+    if input.just_pressed(KEY_PLAYER_UP) && map.check_if_valid_move(&pos_player_old.up())
+        {
+        map.move_unit(&mut pos_player_old, pos_player_old.up());
+        }
+    if input.just_pressed(KEY_PLAYER_DOWN) && map.check_if_valid_move(&pos_player_old.down())
+        {
+        map.move_unit(&mut pos_player_old, pos_player_old.down());
+        }
+    if pos_player_old != pos_player.clone() {
+        println!("Going to Enemy Turn");
+        next_game_state.set(GameState::EnemyTurn);
+    }
+}
