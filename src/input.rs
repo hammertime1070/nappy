@@ -78,22 +78,26 @@ pub fn check_player_move_other(
         .expect("no player pos found");
 
     let pos_player_old = pos_player.clone();
+    let pos_player_right = pos_player.clone().right().unwrap();
+    let pos_player_left = pos_player.clone().left().unwrap();
+    let pos_player_up = pos_player.clone().up().unwrap();
+    let pos_player_down = pos_player.clone().down().unwrap();
 
-    if input.just_pressed(KEY_PLAYER_RIGHT) && map.check_if_valid_move(&pos_player_old.right().unwrap())
+    if input.just_pressed(KEY_PLAYER_RIGHT) && map.check_if_valid_move(&pos_player_old.right().unwrap()).unwrap()
         {
-        map.move_unit(&mut pos_player_old, pos_player_old.right().unwrap());
+        map.move_unit(&mut pos_player, &pos_player_right);
         }
-    if input.just_pressed(KEY_PLAYER_LEFT) && map.check_if_valid_move(&pos_player_old.left().unwrap())
+    if input.just_pressed(KEY_PLAYER_LEFT) && map.check_if_valid_move(&pos_player_old.left().unwrap()).unwrap()
         {
-        map.move_unit(&mut pos_player_old, pos_player_old.left().unwrap());
+        map.move_unit(&mut pos_player, &pos_player_left);
         }
-    if input.just_pressed(KEY_PLAYER_UP) && map.check_if_valid_move(&pos_player_old.up().unwrap())
+    if input.just_pressed(KEY_PLAYER_UP) && map.check_if_valid_move(&pos_player_old.up().unwrap()).unwrap()
         {
-        map.move_unit(&mut pos_player_old, pos_player_old.up().unwrap());
+        map.move_unit(&mut pos_player, &pos_player_up);
         }
-    if input.just_pressed(KEY_PLAYER_DOWN) && map.check_if_valid_move(&pos_player_old.down().unwrap())
+    if input.just_pressed(KEY_PLAYER_DOWN) && map.check_if_valid_move(&pos_player_old.down().unwrap()).unwrap()
         {
-        map.move_unit(&mut pos_player_old, pos_player_old.down().unwrap());
+        map.move_unit(&mut pos_player, &pos_player_down);
         }
     if pos_player_old != pos_player.clone() {
         println!("Going to Enemy Turn");

@@ -87,13 +87,13 @@ impl Map {
     }
 
     // TODO: Incorporate this function to simplify movements
-    pub fn check_if_valid_move(&mut self, new_position: &MapPosition) -> Result<(), String> {
+    pub fn check_if_valid_move(&mut self, new_position: &MapPosition) -> Result<(bool), String> {
         let index_to = self.as_tile_index(new_position)?;
         let target_tile = self.tiles[index_to];
         if target_tile.is_walkable() && !target_tile.is_occupied() {
-            Ok(())
+            Ok(true)
         } else {
-            Err("Tile is occupied or not walkable".to_string())
+            Ok(false)
         }
     }
 
