@@ -359,7 +359,9 @@ pub fn enumerate_reachable_positions(
 
 pub fn can_move_left(pos: &MapPosition, map: &Map) -> bool {
     if pos.x > 0 {
-        map.tiles[pos.x + pos.y * map.width - 1].is_walkable()
+        let index = pos.x + pos.y * map.width -1;
+        let tile = map.tiles[index];
+        tile.is_walkable() && !tile.is_occupied()
     } else {
         false
     }
@@ -367,7 +369,9 @@ pub fn can_move_left(pos: &MapPosition, map: &Map) -> bool {
 
 pub fn can_move_right(pos: &MapPosition, map: &Map) -> bool {
     if pos.x < map.width - 1 {
-        map.tiles[pos.x + pos.y * map.width + 1].is_walkable()
+        let index = pos.x + pos.y * map.width + 1;
+        let tile = map.tiles[index];
+        tile.is_walkable() && !tile.is_occupied()
     } else {
         false
     }
@@ -375,7 +379,9 @@ pub fn can_move_right(pos: &MapPosition, map: &Map) -> bool {
 
 pub fn can_move_up(pos: &MapPosition, map: &Map) -> bool {
     if pos.y > 0 {
-        map.tiles[pos.x + (pos.y - 1) * map.width].is_walkable()
+        let index = pos.x + (pos.y - 1) * map.width;
+        let tile = map.tiles[index];
+        tile.is_walkable() && !tile.is_occupied()
     } else {
         false
     }
@@ -383,7 +389,9 @@ pub fn can_move_up(pos: &MapPosition, map: &Map) -> bool {
 
 pub fn can_move_down(pos: &MapPosition, map: &Map) -> bool {
     if pos.y < map.height - 1 {
-        map.tiles[pos.x + (pos.y + 1) * map.width].is_walkable()
+        let index = pos.x + (pos.y + 1) * map.width;
+        let tile = map.tiles[index];
+        tile.is_walkable() && !tile.is_occupied()
     } else {
         false
     }
