@@ -28,7 +28,7 @@ fn main() {
         .add_plugins(DefaultPlugins.set(WindowPlugin { primary_window: Some(Window { resolution: (WINDOW_WIDTH, WINDOW_HEIGHT).into(), ..Default::default()}), ..Default::default() }).set(ImagePlugin::default_nearest()))
         .add_plugins(InputPlugin)
         .add_plugins(EnemyPlugin)
-        .add_plugins(AttackPlugin)
+        // .add_plugins(AttackPlugin)
         .init_state::<GameState>()
         .add_systems(Startup, setup)
         // .add_systems(Update, update_sprite_transforms)

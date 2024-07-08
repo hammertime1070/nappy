@@ -86,6 +86,17 @@ impl Map {
         Ok(())
     }
 
+    // TODO: Incorporate this function to simplify movements
+    pub fn check_if_valid_move(&mut self, new_position: &MapPosition) -> Result<(), String> {
+        let index_to = self.as_tile_index(new_position)?;
+        let target_tile = self.tiles[index_to];
+        if target_tile.is_walkable() && !target_tile.is_occupied() {
+            Ok(())
+        } else {
+            Err("Tile is occupied or not walkable".to_string())
+        }
+    }
+
     pub fn new_rd(width: usize, height: usize) -> Self {
         let mut tiles = Vec::new();
         // Ensure dimensions are odd
@@ -353,6 +364,9 @@ pub fn enumerate_reachable_positions(
             x: position.x,
             y: position.y + 1,
         });
+    }
+    for position in &reachable_positions {
+        println!("Map Position: x = {}, y = {}", position.x, position.y);
     }
     return reachable_positions;
 }

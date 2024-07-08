@@ -38,7 +38,7 @@ pub struct EnemyBundle {
 }
 
 pub fn enemy_behavior_system(
-    mut q_player: Query<(Entity, &MapPosition), With<Player>,
+    mut q_player: Query<(Entity, &MapPosition), With<Player>>,
     mut q_units: Query<(Entity, &mut MapPosition, &MovementStrategy), Without<Player>>,
     mut q_map: Query<&mut Map>,
     mut next_game_state: ResMut<NextState<GameState>>,
