@@ -48,14 +48,14 @@ pub fn enemy_behavior_system(
     let (player_entity, player_pos) = q_player.single();
     for (entity, enemy_position, movement_strategy) in q_units.iter_mut() {
         if check_if_hitable_player(&map, &enemy_position, &player_pos) {
-            hit(attacker: entity, target: player_entity, damage: 1, hit_events: hit_event_writer)
+            hit(entity, player_entity, 1, hit_event_writer);
         } else {
             match movement_strategy.strategy {
                 ConcreteMovementStrategy::MoveRandomly => {
-                    move_randomly(&mut unit_pos, &mut map);
+                    move_randomly(&mut enemy_pos, &mut map);
                 },
                 ConcreteMovementStrategy::MoveGreedily => {
-                    move_greedily(&mut unit_pos, &mut map, &player_pos);
+                    move_greedily(&mut enemy_pos, &mut map, &player_pos);
                 }
                 // Add more cases here as you add more strategies
             } 
