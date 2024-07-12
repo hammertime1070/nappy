@@ -10,7 +10,7 @@ pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::EnemyTurn), move_unit);
+        app.add_systems(OnEnter(GameState::EnemyTurn), enemy_behavior_system);
     }
 }
 
@@ -42,14 +42,23 @@ pub fn enemy_behavior_system(
     mut q_units: Query<(Entity, &mut MapPosition, &MovementStrategy), Without<Player>>,
     mut q_map: Query<&mut Map>,
     mut next_game_state: ResMut<NextState<GameState>>,
+    mut hit_event_writer: EventWriter<HitEvent>,
 ){
     let mut map = q_map.single_mut();
     let (player_entity, player_pos) = q_player.single();
-    for (entity, enemy_position, movement_strategy) in q_units.iter() {
-        if enemy_position.distance(player_pos) == 1 {
-            // Implement Attack Strategies if needed
+    for (entity, enemy_position, movement_strategy) in q_units.iter_mut() {
+        if check_if_hitable_player(&map, &enemy_position, &player_pos) {
+            hit(attacker: entity, target: player_entity, damage: 1, hit_events: hit_event_writer)
         } else {
-            // Implement Movement Strategies 
+            match movement_strategy.strategy {
+                ConcreteMovementStrategy::MoveRandomly => {
+                    move_randomly(&mut unit_pos, &mut map);
+                },
+                ConcreteMovementStrategy::MoveGreedily => {
+                    move_greedily(&mut unit_pos, &mut map, &player_pos);
+                }
+                // Add more cases here as you add more strategies
+            } 
         }
     }
 }

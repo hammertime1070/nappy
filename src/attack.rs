@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use crate::resource::*;
+use crate::map::*;
 
 pub struct AttackPlugin;
 
@@ -34,4 +35,8 @@ pub fn handle_hits(mut hit_events: EventReader<HitEvent>, mut query: Query<&mut 
             println!("Entity {:?} was hit by {:?} for {} damage.", event.target, event.attacker, event.damage);
         }
     }
+}
+
+pub fn check_if_hitable_player(map: &Map, current_position: &MapPosition, player_position: &MapPosition) -> bool {
+    current_position.distance(player_position) == 1
 }

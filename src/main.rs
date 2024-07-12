@@ -21,7 +21,7 @@ use states::*;
 use states::GameState;
 use tile::TileBundle;
 use unit::*;
-//TODO Broke movement, not appropriately changing gamestates after player input
+
 
 fn main() {
     App::new()
@@ -166,5 +166,22 @@ fn update_sprite_transforms(
         transform.translation.x = sprite_x;
         transform.translation.y = sprite_y;
         // print!("Updated transform to: ({}, {})", sprite_x, sprite_y);
+    }
+}
+
+fn render_hp_pips(commands: Commands, asset_server: Res<AssetServer>, query: Query<(&Transform, &HP)>) {
+    let hp_texture_handle = asset_server.load("HP.png");
+    for (transform, hp) in query.iter() {
+        let start_x = transform.translation.x + SPRITE_TILE_WIDTH / 2.0 - 8.0;
+        let start_y = transform.translation.y + SPRITE_TILE_HEIGHT / 2.0 - 8.0;
+        for i in 0..hp.current {
+            let x_offset = 0.0;
+            let y_offset = -(i as f32 * 8.0);
+            commands.spawn(SpriteBundle {
+                texture: hp_texture_handle,
+                transform: Transform::from_xyz(start_x + x_offset, start_y + y_offset, Z_INDEX_HP),
+                ..default()
+            });
+        }
     }
 }
